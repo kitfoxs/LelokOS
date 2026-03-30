@@ -23,7 +23,7 @@ struct SettingsView: View {
                 
                 Section("Workspace") {
                     LabeledContent("Home Directory") {
-                        Text("~/Documents/LelokOS/")
+                        Text("~/Documents/LelockUniverse/")
                             .font(.system(.body, design: .monospaced))
                     }
                 }
