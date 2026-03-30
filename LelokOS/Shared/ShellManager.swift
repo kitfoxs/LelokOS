@@ -132,26 +132,48 @@ class ShellManager: ObservableObject {
     
     // MARK: - Interactive CLI Spawning (Copilot / Claude Code)
     
+    /// CLI tool definition with path and default isolation args
+    struct CLITool {
+        let path: String
+        let defaultArgs: [String]  // Args to isolate from global MCP configs
+    }
+    
     /// Known interactive CLI tools and their paths
-    private static let interactiveCLIs: [String: String] = {
-        var clis: [String: String] = [:]
+    private static let interactiveCLIs: [String: CLITool] = {
+        var clis: [String: CLITool] = [:]
+        
         // Detect Copilot CLI
         let copilotPaths = ["/opt/homebrew/bin/copilot", "/usr/local/bin/copilot"]
         for path in copilotPaths {
             if FileManager.default.isExecutableFile(atPath: path) {
-                clis["copilot"] = path
+                clis["copilot"] = CLITool(
+                    path: path,
+                    defaultArgs: [
+                        "--disable-builtin-mcps",   // Don't load github MCP
+                        "--config-dir", FileManager.default.homeDirectoryForCurrentUser
+                            .appendingPathComponent("Documents/LelokOS/.config/copilot").path
+                    ]
+                )
                 break
             }
         }
+        
         // Detect Claude Code CLI
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let claudePaths = ["\(home)/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
         for path in claudePaths {
             if FileManager.default.isExecutableFile(atPath: path) {
-                clis["claude"] = path
+                clis["claude"] = CLITool(
+                    path: path,
+                    defaultArgs: [
+                        "--strict-mcp-config",   // Ignore ALL global MCP configs
+                        "--mcp-config", "{}"     // Empty MCP config = no servers
+                    ]
+                )
                 break
             }
         }
+        
         return clis
     }()
     
@@ -160,9 +182,11 @@ class ShellManager: ObservableObject {
         let parts = command.split(separator: " ").map(String.init)
         guard let cmd = parts.first else { return nil }
         
-        if let path = Self.interactiveCLIs[cmd] {
-            let args = Array(parts.dropFirst())
-            return (path, args)
+        if let tool = Self.interactiveCLIs[cmd] {
+            let userArgs = Array(parts.dropFirst())
+            // Combine: user args first, then isolation args (user can override)
+            let args = userArgs + tool.defaultArgs
+            return (tool.path, args)
         }
         return nil
     }
