@@ -19,10 +19,14 @@ targets:
     sources:
       - path: LelokOS/Shared
         group: Shared
+    entitlements:
+      path: LelokOS/LelokOS.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.lelock.os
         PRODUCT_NAME: "Lelock OS"
+        CODE_SIGN_ENTITLEMENTS: LelokOS/LelokOS.entitlements
+        ENABLE_HARDENED_RUNTIME: NO
         INFOPLIST_GENERATION_MODE: GeneratedFile
         INFOPLIST_KEY_CFBundleDisplayName: "Lelock OS"
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.developer-tools"
