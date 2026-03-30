@@ -31,9 +31,12 @@ struct TerminalView: View {
             
             // Input line
             HStack(spacing: 0) {
-                Text(shell.prompt)
-                    .font(.system(size: 14, design: .monospaced))
-                    .foregroundColor(.green)
+                // Show different prompt in interactive mode
+                if !shell.isInInteractiveMode {
+                    Text(shell.prompt)
+                        .font(.system(size: 14, design: .monospaced))
+                        .foregroundColor(.green)
+                }
                 
                 TextField("", text: $inputText)
                     .textFieldStyle(.plain)
@@ -44,12 +47,27 @@ struct TerminalView: View {
                         executeCommand()
                     }
                     .onKeyPress(.upArrow) {
+                        if shell.isInInteractiveMode {
+                            shell.sendToInteractiveProcess("\u{1b}[A") // Up arrow escape
+                            return .handled
+                        }
                         inputText = shell.historyBack() ?? inputText
                         return .handled
                     }
                     .onKeyPress(.downArrow) {
+                        if shell.isInInteractiveMode {
+                            shell.sendToInteractiveProcess("\u{1b}[B") // Down arrow escape
+                            return .handled
+                        }
                         inputText = shell.historyForward() ?? inputText
                         return .handled
+                    }
+                    .onKeyPress(.escape) {
+                        if shell.isInInteractiveMode {
+                            shell.exitInteractiveMode()
+                            return .handled
+                        }
+                        return .ignored
                     }
             }
             .padding(.horizontal, 12)

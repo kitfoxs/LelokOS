@@ -10,14 +10,18 @@
 		3D6F4DCC2BBD8D3813C4B286 /* TerminalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE26EB6663F32F590DEAB55F /* TerminalView.swift */; };
 		4A0177EB728E8D71790AFA14 /* LelokOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA25AE518B49E80DDC789E16 /* LelokOSApp.swift */; };
 		6350944A014323D16CEE5213 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11640922C9D1829AA5994DB5 /* SettingsView.swift */; };
+		6368FAB1AE93EC6E4AF2BB1D /* InteractiveProcess.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9080A3C5EA0A754C5CE9AF /* InteractiveProcess.swift */; };
 		D115DD59F3B727CFB687737B /* ShellManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41CED9EC2C1F404DF3574032 /* ShellManager.swift */; };
+		EA5073223162BE27D5616C8B /* ada_marie_character.json in Resources */ = {isa = PBXBuildFile; fileRef = 346AF1ED731B781360800F74 /* ada_marie_character.json */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		11640922C9D1829AA5994DB5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		2D6715CCD1588B7EEB8F19D8 /* LelokOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LelokOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		346AF1ED731B781360800F74 /* ada_marie_character.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ada_marie_character.json; sourceTree = "<group>"; };
 		41CED9EC2C1F404DF3574032 /* ShellManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellManager.swift; sourceTree = "<group>"; };
 		BE26EB6663F32F590DEAB55F /* TerminalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalView.swift; sourceTree = "<group>"; };
+		DB9080A3C5EA0A754C5CE9AF /* InteractiveProcess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InteractiveProcess.swift; sourceTree = "<group>"; };
 		EA25AE518B49E80DDC789E16 /* LelokOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LelokOSApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -34,10 +38,12 @@
 		4AA16928B07EC97868419802 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				DB9080A3C5EA0A754C5CE9AF /* InteractiveProcess.swift */,
 				EA25AE518B49E80DDC789E16 /* LelokOSApp.swift */,
 				11640922C9D1829AA5994DB5 /* SettingsView.swift */,
 				41CED9EC2C1F404DF3574032 /* ShellManager.swift */,
 				BE26EB6663F32F590DEAB55F /* TerminalView.swift */,
+				A8E87D7F9892DCCA4F5A9F8B /* Resources */,
 			);
 			name = Shared;
 			path = LelokOS/Shared;
@@ -67,6 +73,14 @@
 			path = LelokOS;
 			sourceTree = "<group>";
 		};
+		A8E87D7F9892DCCA4F5A9F8B /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				346AF1ED731B781360800F74 /* ada_marie_character.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -75,6 +89,7 @@
 			buildConfigurationList = 1898E1D1A8B2AF04C42213B3 /* Build configuration list for PBXNativeTarget "LelokOS" */;
 			buildPhases = (
 				140C117109D02493D863BEE6 /* Sources */,
+				970A0FB2DD3E99E3E2B0D776 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -121,11 +136,23 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		970A0FB2DD3E99E3E2B0D776 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EA5073223162BE27D5616C8B /* ada_marie_character.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		140C117109D02493D863BEE6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6368FAB1AE93EC6E4AF2BB1D /* InteractiveProcess.swift in Sources */,
 				4A0177EB728E8D71790AFA14 /* LelokOSApp.swift in Sources */,
 				6350944A014323D16CEE5213 /* SettingsView.swift in Sources */,
 				D115DD59F3B727CFB687737B /* ShellManager.swift in Sources */,

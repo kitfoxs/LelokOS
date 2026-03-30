@@ -59,6 +59,10 @@ class ShellManager: ObservableObject {
     // Built-in commands that we handle natively
     private var builtinCommands: [String: ([String]) async -> Void] = [:]
     
+    // Interactive process for Copilot CLI / other REPLs
+    @Published var activeProcess: InteractiveProcess?
+    @Published var isInInteractiveMode = false
+    
     init() {
         let home = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Documents/LelokOS")
@@ -111,13 +115,108 @@ class ShellManager: ObservableObject {
             "cd": { [weak self] args in self?.cmdCd(args) },
             "pwd": { [weak self] _ in self?.cmdPwd() },
             "clear": { [weak self] _ in self?.cmdClear() },
-            "exit": { _ in NSApplication.shared.terminate(nil) },
+            "exit": { [weak self] _ in
+                if self?.isInInteractiveMode == true {
+                    self?.exitInteractiveMode()
+                } else {
+                    NSApplication.shared.terminate(nil)
+                }
+            },
             "help": { [weak self] _ in self?.cmdHelp() },
             "ada": { [weak self] args in self?.cmdAda(args) },
             "about": { [weak self] _ in self?.cmdAbout() },
             "env": { [weak self] _ in self?.cmdEnv() },
             "export": { [weak self] args in self?.cmdExport(args) },
         ]
+    }
+    
+    // MARK: - Interactive CLI Spawning (Copilot / Claude Code)
+    
+    /// Known interactive CLI tools and their paths
+    private static let interactiveCLIs: [String: String] = {
+        var clis: [String: String] = [:]
+        // Detect Copilot CLI
+        let copilotPaths = ["/opt/homebrew/bin/copilot", "/usr/local/bin/copilot"]
+        for path in copilotPaths {
+            if FileManager.default.isExecutableFile(atPath: path) {
+                clis["copilot"] = path
+                break
+            }
+        }
+        // Detect Claude Code CLI
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let claudePaths = ["\(home)/.local/bin/claude", "/opt/homebrew/bin/claude", "/usr/local/bin/claude"]
+        for path in claudePaths {
+            if FileManager.default.isExecutableFile(atPath: path) {
+                clis["claude"] = path
+                break
+            }
+        }
+        return clis
+    }()
+    
+    /// Check if a command should launch as interactive CLI
+    private func isInteractiveCLI(_ command: String) -> (path: String, args: [String])? {
+        let parts = command.split(separator: " ").map(String.init)
+        guard let cmd = parts.first else { return nil }
+        
+        if let path = Self.interactiveCLIs[cmd] {
+            let args = Array(parts.dropFirst())
+            return (path, args)
+        }
+        return nil
+    }
+    
+    /// Launch an interactive CLI (Copilot, Claude Code, etc.)
+    func launchInteractiveCLI(executable: String, arguments: [String]) {
+        let proc = InteractiveProcess()
+        
+        proc.onOutput = { [weak self] text in
+            // Split into lines and add to output
+            let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+            for line in lines {
+                self?.addOutput(.stdout(String(line)))
+            }
+        }
+        
+        proc.onExit = { [weak self] status in
+            self?.addOutput(.system("Process exited with code \(status)"))
+            self?.isInInteractiveMode = false
+            self?.activeProcess = nil
+        }
+        
+        do {
+            try proc.launch(
+                executable: executable,
+                arguments: arguments,
+                environment: environment,
+                currentDirectory: currentDirectory
+            )
+            activeProcess = proc
+            isInInteractiveMode = true
+        } catch {
+            addOutput(.stderr("Failed to launch: \(error.localizedDescription)"))
+        }
+    }
+    
+    /// Send input to the active interactive process
+    func sendToInteractiveProcess(_ text: String) {
+        activeProcess?.sendLine(text)
+    }
+    
+    /// Exit interactive mode (Ctrl+C or exit)
+    func exitInteractiveMode() {
+        activeProcess?.sendInterrupt()
+        // Give it a moment, then force terminate if still running
+        Task {
+            try? await Task.sleep(for: .seconds(1))
+            if activeProcess?.isRunning == true {
+                activeProcess?.terminate()
+            }
+            isInInteractiveMode = false
+            activeProcess = nil
+            addOutput(.system("Returned to Lelock OS shell."))
+        }
     }
     
     // MARK: - Command Execution
@@ -128,6 +227,12 @@ class ShellManager: ObservableObject {
         isExecuting = true
         defer { isExecuting = false }
         
+        // If in interactive mode, send to active process
+        if isInInteractiveMode {
+            sendToInteractiveProcess(command)
+            return
+        }
+        
         let parts = command.split(separator: " ", maxSplits: 1).map(String.init)
         let cmd = parts.first ?? ""
         let args = parts.count > 1 ? parts[1].split(separator: " ").map(String.init) : []
@@ -135,6 +240,13 @@ class ShellManager: ObservableObject {
         // Check built-in commands first
         if let builtin = builtinCommands[cmd] {
             await builtin(args)
+            return
+        }
+        
+        // Check if this should launch as an interactive CLI
+        if let cli = isInteractiveCLI(command) {
+            addOutput(.system("Launching \(cmd)... (type 'exit' or Ctrl+C to return to Lelock OS)"))
+            launchInteractiveCLI(executable: cli.path, arguments: cli.args)
             return
         }
         
