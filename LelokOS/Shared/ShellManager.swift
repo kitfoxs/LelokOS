@@ -60,7 +60,7 @@ class ShellManager: ObservableObject {
     private var builtinCommands: [String: ([String]) async -> Void] = [:]
     
     // Interactive process for Copilot CLI / other REPLs
-    @Published var activeProcess: InteractiveProcess?
+    var activeProcess: InteractiveProcess?
     @Published var isInInteractiveMode = false
     
     /// The Universe root — all of Lelock OS lives here
